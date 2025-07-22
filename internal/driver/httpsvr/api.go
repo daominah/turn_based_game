@@ -37,5 +37,22 @@ func NewHandlerAPI() http.Handler {
 		_, _ = w.Write([]byte(response))
 	})
 
+	handler.HandleFunc("/api/duel", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			_, _ = w.Write([]byte("duel created (stub)"))
+			return
+		}
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	})
+
+	handler.HandleFunc("/api/duel/{duelID}/action", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			duelID := r.PathValue("duelID")
+			_, _ = w.Write([]byte("duel action (stub) for duelID: " + duelID))
+			return
+		}
+		w.WriteHeader(http.StatusMethodNotAllowed)
+	})
+
 	return allowCORS()(handler)
 }
