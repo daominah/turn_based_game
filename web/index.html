@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+  <title>Fusion battle card game with ChatGPT</title>
+  <meta charset="utf-8">
+
+  <!-- full text search -->
+  <!--  <script src="https://unpkg.com/lunr/lunr.js"></script>-->
+  <script src="external_lib/lunr.js"></script>
+
+  <!-- main -->
+  <script type="text/javascript" src="index.js"></script>
+
+  <!--
+  How do I include a JavaScript file in another JavaScript file?
+  https://stackoverflow.com/questions/950087/how-do-i-include-a-javascript-file-in-another-javascript-file
+  Answer: Above URL: section ECMAScript modules in browsers.
+  TLDR: <script type="module" src="index.js"></script>
+  Note: type="module" causes you cannot access top level variables or functions in
+  `index.js` from browser console. So, method 1 includes both script in
+  `index.html` seems more convenient.
+
+  What is "export default" in JavaScript?
+  https://stackoverflow.com/questions/21117160/what-is-export-default-in-javascript
+  TLDR: you import the default export function by omitting the curly braces
+  -->
+  <!--  <script type="module" src="index.js"></script>-->
+
+  <link rel="stylesheet" href="index.css">
+</head>
+
+
+<body>
+
+<h1>Fusion battle card game with ChatGPT</h1>
+
+<div>
+  <img src="./images/ConsumeIcon0002_L.png" alt="Consume Icon 2">
+  <img src="./images/ConsumeIcon0006_L.png" alt="Consume Icon 6">
+</div>
+
+<div>
+  <button id="helloBtn">Call /api/hello</button>
+  <div id="helloResult"></div>
+</div>
+
+</body>
+
+
+</html>

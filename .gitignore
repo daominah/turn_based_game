@@ -1,0 +1,20 @@
+# coding app's project files
+.idea
+.vscode
+.DS_Store
+
+
+# Go testing output
+*.out
+*.test
+profile*.pdf
+
+
+# binary exes
+cmd/*/*.exe
+.~lock.*
+
+
+# config with real username, password...
+config/*ignore*.sh
+config/.env*
