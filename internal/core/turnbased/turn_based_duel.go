@@ -1,4 +1,4 @@
-package generic_turn_based
+package turnbased
 
 // Duel represents a generic turn-based game duel.
 type Duel struct {
@@ -7,7 +7,17 @@ type Duel struct {
 	Turn       int        // Current turn number (starts from 1)
 	TurnPlayer PlayerID   // Player ID whose turn it is
 	Winner     PlayerID   // Player ID if someone has won, empty if ongoing, "DRAW" for draw
-	State      DuelState  // BEGIN, OPEN, END
+	State      DuelState  // BEGIN, RUNNING, END
+	Game       GameLogic
+}
+
+// GameLogic is implemented differently for each game,
+// but all implementations share some common methods
+// so that the centralized router can interact with them.
+type GameLogic interface {
+	GetState() any
+	HandleAction(action any) error
+	// Add more methods as needed for your engine
 }
 
 // NewDuel creates a new Duel with the given players.
@@ -15,8 +25,8 @@ func NewDuel(id DuelID, players []PlayerID) *Duel {
 	return &Duel{
 		ID:         id,
 		Players:    players,
-		Turn:       1,
-		TurnPlayer: players[0],
+		Turn:       0,
+		TurnPlayer: "",
 		Winner:     "",
 		State:      DuelStateBegin,
 	}
@@ -65,8 +75,10 @@ type DuelID string
 // DuelState represents the main state of a duel.
 //
 // Possible values:
-//   - "BEGIN":
-//   - "OPEN": The duel is in progress. Only one player can perform valid actions at a time.
+//   - "BEGIN": The duel has just been initialized. Some automatic actions are performed,
+//     such as tossing a coin to determine who plays first, drawing cards, or placing
+//     chess pieces in their starting positions. No player can perform actions in this state.
+//   - "RUNNING": The duel is in progress. Only one player can perform valid actions at a time.
 //     After each action, the game state changes, and the engine determines which player
 //     can act next and what actions are available, according to the game logic.
 //   - "END": The duel has ended, either because someone has won or, rarely, due to a draw.
@@ -81,10 +93,10 @@ const (
 	// such as tossing a coin to determine who plays first, drawing cards, or placing
 	// chess pieces in their starting positions. No player can perform actions in this state.
 	DuelStateBegin DuelState = "BEGIN"
-	// DuelStateOpen means the duel is in progress. Only one player can perform valid actions at a time.
+	// DuelStateRunning means the duel is in progress. Only one player can perform valid actions at a time.
 	// After each action, the game state changes, and the engine determines which player
 	// can act next and what actions are available, according to the game logic.
-	DuelStateOpen DuelState = "OPEN"
+	DuelStateRunning DuelState = "RUNNING"
 	// DuelStateEnd means the duel has ended, either because someone has won or, rarely, due to a draw.
 	DuelStateEnd DuelState = "END"
 )

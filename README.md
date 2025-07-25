@@ -10,13 +10,13 @@ backend written in Go, frontend written in JavaScript.
 A highly generic implementation of a turn-based game engine, containing only the
 common logic required by all turn-based games.
 
-- Supports any number of players (default is 2).
-- The duel always has a state. Three main states are:
+- Supports any number of **players** (default is 2).
+- The **duel** always has a state. Three main states are:
   - BEGIN: The duel has just been initialized. Some automatic actions are performed,
     such as tossing a coin to determine who plays first, drawing cards, or placing
     chess pieces in their starting positions. No player can perform actions in this state.
   - END: The duel has ended, either because someone has won or, rarely, due to a draw.
-  - OPEN: The duel is in progress. Only one player can perform valid actions at a time.
+  - RUNNING: The duel is in progress. Only one player can perform valid actions at a time.
     After each action, the game state changes, and the engine determines which player
     can act next and what actions are available, according to the game logic.
 - Valid actions are determined by the current game state.
@@ -37,7 +37,8 @@ Very simple card game to demonstrate the engine.
   - Gain x LP.
   - Inflict y damage to the opponent.
     (the LP value is randomly generated, 0 < x < 1000, 0 < y < 3000, divisible by 100)
-- The duel ends when one player LP reaches 0.
+- The duel ends when one player LP reaches 0 (or less),
+  Or when a player needs to draw but the deck is empty.
 - During a turn, only the turn player can do actions. Actions are:
   - Play a card from hand.
   - End turn.

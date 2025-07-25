@@ -15,7 +15,7 @@ func main() {
 	baseURL := "http://localhost:11995/api"
 
 	// 1. Create a new duel
-	createReq := map[string]interface{}{
+	createReq := map[string]any{
 		"players": []string{"alice", "bob"},
 	}
 	duelID, err := apiPost(baseURL+"/duel", createReq)
@@ -27,7 +27,7 @@ func main() {
 
 	// 2. Simulate a few turns (this is a placeholder, adjust to your API)
 	for i := 0; i < 3; i++ {
-		turnReq := map[string]interface{}{
+		turnReq := map[string]any{
 			"duel_id": duelID,
 			"action":  "next_turn",
 		}
@@ -44,7 +44,7 @@ func main() {
 }
 
 // apiPost sends a POST request with JSON and returns the response as a string.
-func apiPost(url string, data map[string]interface{}) (string, error) {
+func apiPost(url string, data map[string]any) (string, error) {
 	body, _ := json.Marshal(data)
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(body))
 	if err != nil {

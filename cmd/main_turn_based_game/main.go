@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/daominah/turn_based_game/internal/core/card_game_burn"
+	"github.com/daominah/turn_based_game/internal/core/turnbased"
 	"github.com/daominah/turn_based_game/internal/driver/httpsvr"
 )
 
@@ -14,11 +16,19 @@ func main() {
 	log.SetOutput(customLogger{})
 
 	listenPort := ":11995"
+
+	// init DuelsManager for each game,
+	// the centralized duelsManagers is read-only after this point
+	duelsManagers := map[string]turnbased.DuelsManager{
+		card_game_burn.GameName: turnbased.NewInMemoryDuelsManager(),
+		// Add more games here as needed
+	}
+
 	guiHandler, err := httpsvr.NewHandlerGUI("")
 	if err != nil {
 		log.Fatalf("error NewHandlerGUI: %v", err)
 	}
-	apiHandler := httpsvr.NewHandlerAPI()
+	apiHandler := httpsvr.NewHandlerAPI(duelsManagers)
 
 	mux := http.NewServeMux()
 	mux.Handle("/api/", apiHandler)

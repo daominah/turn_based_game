@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/daominah/turn_based_game/internal/core/turnbased"
 )
 
 // allowCORS is a middleware that sets CORS headers to allow requests from specified origins.
@@ -28,7 +30,8 @@ func allowCORS() func(http.Handler) http.Handler {
 	}
 }
 
-func NewHandlerAPI() http.Handler {
+// NewHandlerAPI creates an API handler that routes actions to the correct DuelsManager by game name.
+func NewHandlerAPI(duelsManagers map[string]turnbased.DuelsManager) http.Handler {
 	handler := http.NewServeMux()
 
 	handler.HandleFunc("/api/hello", func(w http.ResponseWriter, r *http.Request) {
@@ -37,18 +40,42 @@ func NewHandlerAPI() http.Handler {
 		_, _ = w.Write([]byte(response))
 	})
 
+	// Example: POST /api/duel?game=GAME_NAME
 	handler.HandleFunc("/api/duel", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
-			_, _ = w.Write([]byte("duel created (stub)"))
-			return
+			game := r.URL.Query().Get("game")
+			if game == "" {
+				w.WriteHeader(http.StatusBadRequest)
+				_, _ = w.Write([]byte("missing game name"))
+				return
+			}
+			duelsManager, ok := duelsManagers[game]
+			if !ok {
+				w.WriteHeader(http.StatusBadRequest)
+				_, _ = w.Write([]byte("unknown game: " + game))
+				return
+			}
+			_ = duelsManager
 		}
 		w.WriteHeader(http.StatusMethodNotAllowed)
 	})
 
+	// Example: POST /api/duel/{duelID}/action?game=GAME_NAME
 	handler.HandleFunc("/api/duel/{duelID}/action", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method == http.MethodPost {
-			duelID := r.PathValue("duelID")
-			_, _ = w.Write([]byte("duel action (stub) for duelID: " + duelID))
+			game := r.URL.Query().Get("game")
+			if game == "" {
+				w.WriteHeader(http.StatusBadRequest)
+				_, _ = w.Write([]byte("missing game name"))
+				return
+			}
+			duelsManager, ok := duelsManagers[game]
+			if !ok {
+				w.WriteHeader(http.StatusBadRequest)
+				_, _ = w.Write([]byte("unknown game: " + game))
+				return
+			}
+			_ = duelsManager
 			return
 		}
 		w.WriteHeader(http.StatusMethodNotAllowed)
