@@ -31,6 +31,8 @@ func allowCORS() func(http.Handler) http.Handler {
 }
 
 // NewHandlerAPI creates an API handler that routes actions to the correct DuelsManager by game name.
+//
+// duelsManagers: this map keys are game names
 func NewHandlerAPI(duelsManagers map[string]turnbased.DuelsManager) http.Handler {
 	handler := http.NewServeMux()
 

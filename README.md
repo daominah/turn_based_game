@@ -23,23 +23,23 @@ common logic required by all turn-based games.
 - Logging is recommended: all actions and significant state changes should be logged
   so players can review them during the duel or reconstruct a replay later.
 
-### Plugable games logic
+### Pluggable games logic
 
 #### Burn card game
 
 Very simple card game to demonstrate the engine.
 
 - At the beginning of the duel, toss a coin to determine who plays first.
-- Each player has 8000 LP, draws 5 cards. Then start the 1st turn.
+- Each player has 8000 LP and draws 5 cards. Then start the 1st turn.
 - At the start of each turn, except the 1st turn, the turn player draws 1 card.
-- All cards have the similar effect:
+- All cards have similar effects:
   Activate 1 of the following effects:
   - Gain x LP.
   - Inflict y damage to the opponent.
-    (the LP value is randomly generated, 0 < x < 1000, 0 < y < 3000, divisible by 100)
-- The duel ends when one player LP reaches 0 (or less),
-  Or when a player needs to draw but the deck is empty.
-- During a turn, only the turn player can do actions. Actions are:
+    (LP values are randomly generated: 0 < x < 1000, 0 < y < 3000, divisible by 100)
+- The duel ends when one player's LP reaches 0 (or less),
+  or when a player needs to draw but the deck is empty.
+- During a turn, only the turn player can perform actions. Actions are:
   - Play a card from hand.
   - End turn.
 
@@ -47,14 +47,44 @@ Very simple card game to demonstrate the engine.
 
 TODO.
 
-## Front end
+## Architecture
 
-Serve directory [web](web).
+### Message Flow (Slack-like pattern)
 
-Valina JavaScript and HTML.
+The system follows a three-stage message flow pattern similar to Slack's architecture:
 
-Call backend API to send actions.
+1. **Message In (Ingress)**: When a player performs an action (e.g., plays a card, ends turn, creates a duel), the frontend sends the action via WebSocket to the backend. This provides real-time, low-latency communication.
 
-Game state is pushed from backend to frontend by WebSocket,
-the code should allow to scale the server to run multiple machines easily,
-the first implementation is for single instance.
+2. **Persist**: The backend immediately persists the action and resulting game state changes to storage (currently in-memory, can be extended to database). This ensures durability and allows for replay/reconstruction of game history.
+
+3. **Fanout**: After persistence, the backend pushes the updated game state to all connected clients (players in the duel) via WebSocket. This ensures all players see the same state simultaneously without polling.
+
+**Note**: For simplicity, this server uses WebSocket for all communication. HTTP REST API could be used for non-real-time operations (e.g., creating duels, querying history), but WebSocket is used throughout for consistency and simplicity.
+
+This pattern ensures:
+
+- **Low Latency**: WebSocket bidirectional communication provides faster response times
+- **Simplicity**: Single communication protocol for all operations
+- **Reliability**: State is persisted before distribution, so no data is lost
+- **Consistency**: All players receive the same state update
+- **Scalability**: The persist-then-fanout pattern allows for future horizontal scaling (e.g., using message queues or pub/sub systems)
+
+### Front end
+
+Static files are served from the [web](web) directory.
+
+**Vanilla JavaScript implementation** (no frameworks required):
+
+- Simple and lightweight - vanilla JS is powerful enough for this use case
+- Uses native `WebSocket` API for all communication (actions and state updates)
+- Minimal dependencies, easy to understand and maintain
+
+The frontend:
+
+- Maintains a WebSocket connection for all game communication
+- Sends all player actions through the WebSocket connection (creating duels, playing cards, ending turns, etc.)
+- Receives game state updates through the same WebSocket connection
+- Updates the UI reactively when state changes arrive
+
+The code should allow scaling the server to run on multiple machines easily;
+the first implementation is for a single instance.
