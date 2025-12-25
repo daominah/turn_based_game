@@ -68,9 +68,19 @@ func (m *InMemoryDuelsManager) UpdateDuel(duel *Duel) (*Duel, error) {
 	if !ok {
 		return nil, fmt.Errorf("duel not found")
 	}
-	if existing.State == DuelStateEnd {
+	// Allow updating if transitioning TO END state (existing is not END, but new is END)
+	// but prevent further updates after it's already ended (both are END)
+	if existing.State == DuelStateEnd && duel.State == DuelStateEnd {
+		// Duel already ended, but allow the update if it's the same state (idempotent)
+		// This handles cases where the final state needs to be broadcast
+		if existing.Winner == duel.Winner {
+			// Same winner, allow update for broadcasting final state
+			m.duels[duel.ID] = duel
+			return duel, nil
+		}
 		return existing, fmt.Errorf("duel already ended")
 	}
+	// Allow transition to END state or any other state change
 	m.duels[duel.ID] = duel
 	return duel, nil
 }

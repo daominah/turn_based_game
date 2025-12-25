@@ -30,8 +30,13 @@ func main() {
 	}
 	apiHandler := httpsvr.NewHandlerAPI(duelsManagers)
 
+	// Setup WebSocket handler
+	connectionMgr := httpsvr.NewConnectionManager()
+	wsHandler := httpsvr.NewWebSocketHandler(duelsManagers, connectionMgr)
+
 	mux := http.NewServeMux()
 	mux.Handle("/api/", apiHandler)
+	mux.HandleFunc("/ws", wsHandler.HandleWebSocket)
 	mux.Handle("/", guiHandler)
 
 	log.Printf("serving API and user interface on http://localhost%v", listenPort)

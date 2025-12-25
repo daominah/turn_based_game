@@ -144,21 +144,32 @@ func (cgb *BurnDuel) PlayCard(
 	// Move card from field to graveyard
 	ps.Graveyard = append(ps.Graveyard, card)
 	ps.Field = ps.Field[:len(ps.Field)-1]
+
+	// Log the action in the generic duel log
+	cgb.Duel.LogAction(player, "PLAY_CARD", map[string]interface{}{
+		"option":  string(option),
+		"gain":    card.Gain,
+		"inflict": card.Inflict,
+	})
+
 	return true
 }
 
 // EndTurn ends the current player's turn, draws a card for next player, advances turn.
 func (cgb *BurnDuel) EndTurn() {
+	// Save the player who is ending their turn (they will win if next player can't draw)
+	endingPlayer := cgb.Duel.TurnPlayer
+
+	// Log the end turn action
+	cgb.Duel.LogAction(endingPlayer, "END_TURN", map[string]interface{}{})
+
 	cgb.Duel.NextTurn()
+	// Now the next player is the turn player, they draw at start of turn
 	ps := cgb.Players[cgb.Duel.TurnPlayer]
 	if ps.drawCard() == nil {
-		// Deck is empty, current player loses
-		for pid := range cgb.Players {
-			if pid != cgb.Duel.TurnPlayer {
-				cgb.Duel.SetWinner(pid)
-				return
-			}
-		}
+		// Deck is empty for the new turn player, so they lose
+		// The player who just ended their turn wins
+		cgb.Duel.SetWinner(endingPlayer)
 	}
 }
 

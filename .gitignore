@@ -10,9 +10,18 @@
 profile*.pdf
 
 
-# binary exes
+# binary executables
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
 cmd/*/*.exe
-.~lock.*
+# Executables in root (from go build)
+main_*
+test_*
+# Test binary, built with `go test -c`
+*.test
 
 
 # config with real username, password...

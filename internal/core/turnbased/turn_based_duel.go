@@ -1,5 +1,19 @@
 package turnbased
 
+import (
+	"time"
+)
+
+// ActionLogEntry represents a single action in the duel log.
+// This is generic and can be used by any game.
+type ActionLogEntry struct {
+	Seq       int                    // Sequence number (1, 2, 3, ...) for replay ordering
+	Timestamp time.Time              // When the action occurred
+	PlayerID  PlayerID               // Player who performed the action
+	Action    string                 // Action type (game-specific, e.g., "PLAY_CARD", "END_TURN")
+	Data      map[string]interface{} // Action-specific data (game-specific)
+}
+
 // Duel represents a generic turn-based game duel.
 type Duel struct {
 	ID         DuelID     // Unique identifier for this duel
@@ -9,6 +23,7 @@ type Duel struct {
 	Winner     PlayerID   // Player ID if someone has won, empty if ongoing, "DRAW" for draw
 	State      DuelState  // BEGIN, RUNNING, END
 	Game       GameLogic
+	ActionLog  []ActionLogEntry // Log of all actions for replay
 }
 
 // GameLogic is implemented differently for each game,
@@ -29,7 +44,21 @@ func NewDuel(id DuelID, players []PlayerID) *Duel {
 		TurnPlayer: "",
 		Winner:     "",
 		State:      DuelStateBegin,
+		ActionLog:  []ActionLogEntry{},
 	}
+}
+
+// LogAction adds an action to the duel log.
+// This is called by game logic implementations when actions are performed.
+func (d *Duel) LogAction(playerID PlayerID, action string, data map[string]interface{}) {
+	seq := len(d.ActionLog) + 1
+	d.ActionLog = append(d.ActionLog, ActionLogEntry{
+		Seq:       seq,
+		Timestamp: time.Now(),
+		PlayerID:  playerID,
+		Action:    action,
+		Data:      data,
+	})
 }
 
 // NextTurn advances the duel to the next turn and updates the turn player.
